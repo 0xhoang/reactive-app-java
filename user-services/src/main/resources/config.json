@@ -1,0 +1,15 @@
+{
+  "http": {
+    "port": 3000
+  },
+  "db": {
+    "url": "jdbc:mysql://localhost:3306/mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mongo": {
+    "url": "localhost",
+    "port": 27017,
+    "db_name": "profiles"
+  }
+}
