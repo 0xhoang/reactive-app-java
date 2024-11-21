@@ -84,8 +84,8 @@ public class IngestionVerticle extends AbstractVerticle {
     router.post("/ingest").handler(this::httpIngest);
 
 
-    //consumer kafka
-    kafkaConsumer.subscribe("incoming.steps")
+    //todo: testing consumer kafka
+   /* kafkaConsumer.subscribe("incoming.steps")
       .toFlowable()
       .subscribe(
         record -> {
@@ -95,10 +95,10 @@ public class IngestionVerticle extends AbstractVerticle {
         },
         err -> {
           logger.error("AMQP ingestion failed", err);
-        });
+        });*/
 
-    //send msg to queue
-    JsonObject body = new JsonObject()
+    //todo: testing send msg to queue
+    /*JsonObject body = new JsonObject()
       .put("deviceId", "10")
       .put("deviceSync", 1L)
       .put("stepsCount", Math.random());
@@ -117,7 +117,7 @@ public class IngestionVerticle extends AbstractVerticle {
         },
         err -> {
           logger.error("AMQP ingestion failed", err);
-        });
+        });*/
 
     return vertx.createHttpServer()
       .requestHandler(router)

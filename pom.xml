@@ -13,6 +13,8 @@
     <module>public-api</module>
     <module>user-services</module>
     <module>ingestion-services</module>
+    <module>congrats-services</module>
+    <module>activity-services</module>
   </modules>
 
   <properties>
