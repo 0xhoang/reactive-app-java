@@ -34,7 +34,7 @@ public class IngestionVerticle extends AbstractVerticle {
 
   Map<String, String> kafkaConfig() {
     Map<String, String> config = new HashMap<>();
-    config.put("bootstrap.servers", "localhost:9092");
+    config.put("bootstrap.servers", "localhost:30092");
     config.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     config.put("value.serializer", "io.vertx.kafka.client.serialization.JsonObjectSerializer");
     config.put("acks", "1");
@@ -51,7 +51,7 @@ public class IngestionVerticle extends AbstractVerticle {
 
   static Map<String, String> kafkaConsumerConfig() {
     Map<String, String> config = new HashMap<>();
-    config.put("bootstrap.servers", "localhost:9092");
+    config.put("bootstrap.servers", "localhost:30092");
     config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     config.put("value.deserializer", "io.vertx.kafka.client.serialization.JsonObjectDeserializer");
     config.put("auto.offset.reset", "earliest");
@@ -82,42 +82,6 @@ public class IngestionVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
     router.post().handler(BodyHandler.create());
     router.post("/ingest").handler(this::httpIngest);
-
-
-    //todo: testing consumer kafka
-   /* kafkaConsumer.subscribe("incoming.steps")
-      .toFlowable()
-      .subscribe(
-        record -> {
-          JsonObject json = record.value();
-          System.out.printf("Offset: %d, Key: %s, Value: %s%n", record.offset(), record.key(), record.value());
-          kafkaConsumer.commit();
-        },
-        err -> {
-          logger.error("AMQP ingestion failed", err);
-        });*/
-
-    //todo: testing send msg to queue
-    /*JsonObject body = new JsonObject()
-      .put("deviceId", "10")
-      .put("deviceSync", 1L)
-      .put("stepsCount", Math.random());
-
-    amqpClient.rxConnect()
-      .flatMap(connection -> connection.rxCreateSender("step-events"))
-      .subscribe(
-        sender -> {
-          System.out.println("amqpClient producer: " + body);
-
-          AmqpMessage msg = AmqpMessage.create()
-            .durable(true)
-            .ttl(5000)
-            .withJsonObjectAsBody(body).build();
-          sender.send(msg);
-        },
-        err -> {
-          logger.error("AMQP ingestion failed", err);
-        });*/
 
     return vertx.createHttpServer()
       .requestHandler(router)

@@ -20,31 +20,73 @@ services:
       - ./init/postgres:/docker-entrypoint-initdb.d/
 
   zookeeper:
-    image: strimzi/zookeeper:0.11.4-kafka-2.1.0
-    command: [
-      "sh", "-c",
-      "bin/zookeeper-server-start.sh config/zookeeper.properties"
-    ]
+    image: confluentinc/cp-zookeeper:7.5.0
     ports:
       - "2181:2181"
     environment:
-      LOG_DIR: /tmp/logs
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    volumes:
+      - ./init/zookeeper-data:/var/lib/zookeeper/data
+      - ./init/zookeeper-log:/var/lib/zookeeper/log
 
   kafka:
-    image: strimzi/kafka:0.18.0-kafka-2.5.0
-    command: [
-      "sh", "-c",
-      "bin/kafka-server-start.sh config/server.properties --override listeners=$${KAFKA_LISTENERS} --override advertised.listeners=$${KAFKA_ADVERTISED_LISTENERS} --override zookeeper.connect=$${KAFKA_ZOOKEEPER_CONNECT}"
-    ]
+    image: confluentinc/cp-kafka:7.5.0
     depends_on:
       - zookeeper
     ports:
       - "9092:9092"
+      - "30092:30092"
+      - "9999:9999"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
-      LOG_DIR: "/tmp/logs"
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:9092,EXTERNAL://localhost:30092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:30092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_PROTOCOL: PLAINTEXT
+      ALLOW_PLAINTEXT_LISTENER: yes
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false
+      KAFKA_JMX_PORT: 9999
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms256M"
+      KAFKA_JMX_HOSTNAME: kafka
+    volumes:
+      - ./init/kafka-data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 9094:9094
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      SERVER_PORT: 9094
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9999
+    depends_on:
+      - kafka
+      - zookeeper
 
   activemq:
     image: rmohr/activemq

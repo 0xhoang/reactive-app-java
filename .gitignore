@@ -184,3 +184,8 @@ nbdist/
 !.vscode/launch.json
 !.vscode/extensions.json
 .idea
+
+init/artemis
+init/zookeeper-data
+init/zookeeper-log
+init/kafka-data

@@ -15,6 +15,7 @@
     <module>ingestion-services</module>
     <module>congrats-services</module>
     <module>activity-services</module>
+    <module>hello-vertx</module>
   </modules>
 
   <properties>
