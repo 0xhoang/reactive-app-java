@@ -16,6 +16,7 @@ public class Intro {
 
     System.out.println("Waiting...");
 
+    //1. Asynchronous operation
     vertx.setTimer(5000, id -> {
       if (System.currentTimeMillis() % 2L == 0L) {
         promise.complete("Ok!");
@@ -24,24 +25,30 @@ public class Intro {
       }
     });
 
+    //2. Derive a future from a promise, and then return it.
     Future<String> future = promise.future();
 
-    future.onSuccess(System.out::println)
-      .onFailure(err -> System.out.println(err.getMessage()));
+    //3. Callback for when the promise is completed
+    future.onSuccess(System.out::println) //success
+      .onFailure(err -> System.out.println(err.getMessage())); //failed
 
+    //4. flatMap result (sleep 300 and print lasted)
     promise.future()
+      //4.1 Recover. The recover operation is called when the promise is failed
       .recover(err -> Future.succeededFuture("Let's say it's ok!"))
       .map(String::toUpperCase)
       .flatMap(str -> {
         Promise<String> next = Promise.promise();
+        //sleep 3000
         vertx.setTimer(3000, id -> next.complete(">>> " + str));
         return next.future();
       })
       .onSuccess(System.out::println);
 
+
+    //5. thenApply result
     CompletionStage<String> cs = promise.future().toCompletionStage();
-    cs
-      .thenApply(String::toUpperCase)
+    cs.thenApply(String::toUpperCase)
       .thenApply(str -> "~~~ " + str)
       .whenComplete((str, err) -> {
         if (err == null) {
@@ -51,15 +58,19 @@ public class Intro {
         }
       });
 
+
+    //Create a CompletableFuture from an asynchronous operation.
     CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> {
       try {
         Thread.sleep(5000);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
+
       return "5 seconds have elapsed";
     });
 
+    //Convert to a Vert.x future, and dispatch on a Vert.x context.
     Future
       .fromCompletionStage(cf, vertx.getOrCreateContext())
       .onSuccess(System.out::println)

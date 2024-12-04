@@ -16,6 +16,7 @@
     <module>congrats-services</module>
     <module>activity-services</module>
     <module>hello-vertx</module>
+    <module>eventbus</module>
   </modules>
 
   <properties>
